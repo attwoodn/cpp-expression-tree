@@ -148,13 +148,121 @@ void test_string_evaluation() {
 
     // test non-const string
     {
-        fixture.some_string = "hello world!";
+        // test equals
+        {
+            auto expr = make_expr(&test_fixture::some_string, &op::equals, std::string("hello world!"));
 
-        auto node = make_expr(&test_fixture::some_string, &op::equals, std::string("hello world!"));
-        assert(node->evaluate(fixture));
+            fixture.some_string = "hello world!";
+            assert(expr->evaluate(fixture));
 
-        fixture.some_string = "hey, world!";
-        assert(!node->evaluate(fixture));
+            fixture.some_string = "hey, world!";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "1234";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "-----";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = " ";
+            assert(!expr->evaluate(fixture));
+        }
+
+        // test not_equals
+        {
+            auto expr = make_expr(&test_fixture::some_string, &op::not_equals, std::string("hello world!"));
+
+            fixture.some_string = "hello world!";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "hey, world!";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "1234";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "-----";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = " ";
+            assert(expr->evaluate(fixture));
+        }
+
+        // test less_than
+        {
+            auto expr = make_expr(&test_fixture::some_string, &op::less_than, std::string("this IS 4 T3s7 $tRing    "));
+
+            fixture.some_string = "u";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "z";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "this IS 4 T3s7 $tRing          ";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "1234567890";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "A";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "this ";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "stuff";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "abcdefghijklmnopqrstuvwxyz";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "this IS 4 T3s7 $tRing    ";
+            assert(!expr->evaluate(fixture));
+        }
+
+        // test greater_than
+        {
+            auto expr = make_expr(&test_fixture::some_string, &op::greater_than, std::string("this IS 4 T3s7 $tRing    "));
+
+            fixture.some_string = "u";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "z";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "this IS 4 T3s7 $tRing          ";
+            assert(expr->evaluate(fixture));
+
+            fixture.some_string = "";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "1234567890";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "A";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "this ";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "stuff";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "abcdefghijklmnopqrstuvwxyz";
+            assert(!expr->evaluate(fixture));
+
+            fixture.some_string = "this IS 4 T3s7 $tRing    ";
+            assert(!expr->evaluate(fixture));
+        }
     }
 }
 
