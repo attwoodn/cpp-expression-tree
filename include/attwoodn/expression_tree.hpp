@@ -60,6 +60,12 @@ namespace attwoodn::expression_tree {
 
     namespace node {
 
+        template<typename Obj, typename LeftChild, typename RightChild>
+        class expression_tree_op_node;
+
+        template<typename Obj, typename Op, typename CompValue>
+        class expression_tree_leaf_node;
+
         /**
          * @brief The base class representing all expression tree nodes.
         */
@@ -139,7 +145,6 @@ namespace attwoodn::expression_tree {
                     return false;
                 }
 
-
             private:
                 boolean_op bool_op_;
                 LeftChild* left_ { nullptr };
@@ -153,7 +158,55 @@ namespace attwoodn::expression_tree {
         */
         template<typename Obj, typename Op, typename CompValue>
         class expression_tree_leaf_node : public expression_tree_node_base<Obj> {
+            public:
+                using this_type = expression_tree_leaf_node<Obj, Op, CompValue>;
 
+                /**
+                 * @brief Constructor that accepts a reference to a member variable of Obj
+                */
+                expression_tree_leaf_node(CompValue Obj::* obj_mem_var, Op op, CompValue comp_value)
+                    : member_var_(obj_mem_var),
+                      logical_op_(op),
+                      comp_value_(comp_value) {}
+
+                /**
+                 * @brief Constructor that accepts a reference to a const member function of Obj
+                */
+                expression_tree_leaf_node(CompValue (Obj::* obj_mem_func)() const, Op op, CompValue comp_value)
+                    : member_func_(obj_mem_func),
+                      logical_op_(op),
+                      comp_value_(comp_value) {}
+
+                ~expression_tree_leaf_node() override {};
+
+                bool evaluate(const Obj& obj) override {
+                    if (!member_func_ && !member_var_) {
+                        throw std::runtime_error("expression_tree_leaf_node has a nullptr for both member function reference " + 
+                            std::string("and member variable reference. At least one is required"));
+                    }
+
+                    CompValue actual_value;
+
+                    if (member_func_) {
+                        // invoke member function and store the result
+                        actual_value = (obj.*member_func_)();
+                    } 
+                    
+                    else if (member_var_) {
+                        // get value from obj's data member
+                        actual_value = obj.*member_var_;
+                    }
+
+                    else return false;
+
+                    return Op(actual_value, comp_value_);
+                }
+
+            private:
+                CompValue (Obj::* member_func_)() const = nullptr;
+                CompValue Obj::* member_var_ = nullptr;
+                Op logical_op_;
+                CompValue comp_value_;
         };
 
     }
