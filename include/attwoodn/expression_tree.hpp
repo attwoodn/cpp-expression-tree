@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 namespace attwoodn::expression_tree {
 
     namespace op {
@@ -51,6 +53,11 @@ namespace attwoodn::expression_tree {
         }
     }
 
+    enum class boolean_op {
+        AND,
+        OR
+    };
+
     namespace node {
 
         /**
@@ -64,23 +71,86 @@ namespace attwoodn::expression_tree {
                 /**
                  * @brief Evaluates the given object to determine if it satisfies the expressions defined in this node and all child nodes.
                  * 
-                 * @returns True if the given object satisfied the expression in this node and all the expressions of all nodes 
+                 * @returns True if the given object satisfied the expression in this node and the expressions of all nodes 
                  *              under this node in the expression tree;
                  * 
-                 *          False if the given object did not satisfy the epression in this node and all the expressions of all 
+                 *          False if the given object did not satisfy the expression in this node and the expressions of all 
                  *              nodes under this node in the expression tree. 
                 */
                 virtual bool evaluate(const Obj& obj) = 0;
         };
 
         /**
-         * 
+         * @brief Represents inner boolean operation nodes of the tree. These nodes contain references to a left and right 
+         *        child node, as well as the boolean operation to be performed (e.g. left child AND right child, or left child OR right child).
         */
         template<typename Obj, typename LeftChild, typename RightChild>
         class expression_tree_op_node : public expression_tree_node_base<Obj> {
+            public:
+                using this_type = expression_tree_op_node<Obj, LeftChild, RightChild>;
 
+                expression_tree_op_node(boolean_op bool_op)
+                    : bool_op_(bool_op) {}
+
+                expression_tree_op_node(const expression_tree_op_node& other) {
+                    bool_op_ = other.bool_op_;
+                    delete left_;
+                    delete right_;
+                    left_ = new LeftChild(*other.left_);
+                    right_ = new RightChild(*other.right_);
+                }
+
+                ~expression_tree_op_node() override {
+                    delete left_;
+                    delete right_;
+                }
+
+                void set_right(RightChild* r) {
+                    delete right_;
+                    right_ = new RightChild(*r);
+                    delete r;
+                }
+
+                void set_left(LeftChild* l) {
+                    delete left_;
+                    left_ = new LeftChild(*l);
+                    delete l;
+                }
+
+                bool evaluate(const Obj& obj) override {
+                    if(!left_ || !right_) {
+                        throw std::runtime_error("expression_tree_op_node has a missing child node");
+                    }
+
+                    switch(bool_op_) {
+                        case boolean_op::AND: {
+                            return left_->evaluate(obj) && right_->evaluate(obj);
+                        }
+
+                        case boolean_op::OR: {
+                            return left_->evaluate(obj) || right_->evaluate(obj);
+                        }
+
+                        default: {
+                            throw std::runtime_error("expression_tree_op_node contained a non-implemented boolean expression");
+                        }
+                    }
+
+                    return false;
+                }
+
+
+            private:
+                boolean_op bool_op_;
+                LeftChild* left_ { nullptr };
+                RightChild* right_ { nullptr };
         };
         
+        /**
+         * @brief Represents leaf nodes of the tree. These nodes contain a reference to a member variable or member function of the
+         *        given Obj type, the requested logical operation to be performed (e.g. equals, greater_than, etc.), and the
+         *        value to compare to the given member variable or member function of an Obj instance.
+        */
         template<typename Obj, typename Op, typename CompValue>
         class expression_tree_leaf_node : public expression_tree_node_base<Obj> {
 
