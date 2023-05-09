@@ -9,28 +9,130 @@ struct test_fixture {
     char* some_char_ptr;
 };
 
-template<class T> struct type_id{typedef T type;}; 
-
-template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue*, CompValue*)>::type,
-         typename std::enable_if<std::is_convertible<CompValue, CompValue*>::value, int>::type = 0>
-node::expression_tree_leaf_node<Obj, Op, CompValue>* make_leaf_node( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
-    return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
-}
-
-template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
-node::expression_tree_leaf_node<Obj, Op, CompValue>* make_leaf_node( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
-    return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
-}
+void test_string_evaluation();
+void test_char_ptr_evaluation();
 
 int main(int argc, char** argv) {
+    test_string_evaluation();
+    test_char_ptr_evaluation();
+
+    return EXIT_SUCCESS;
+}
+
+void test_string_evaluation() {
     test_fixture fixture;
     fixture.some_string = "hello world!";
 
-    auto node = make_leaf_node(&test_fixture::some_string, &op::equals, std::string("hello world!"));
+    auto node = make_expr(&test_fixture::some_string, &op::equals, std::string("hello world!"));
     assert(node->evaluate(fixture));
 
     fixture.some_string = "hey, world!";
     assert(!node->evaluate(fixture));
+}
 
-    return EXIT_SUCCESS;
+void test_char_ptr_evaluation() {
+    char a = 'a';
+    char a_too = 'a';
+    char b = 'b';
+    char b_too = 'b';
+    char c = 'c';
+    char c_too = 'c';
+
+    test_fixture fixture;
+
+    // test equals
+    {
+        // make an expression : given char* == 'a'
+        auto expr = make_expr(&test_fixture::some_char_ptr, &op::equals, &a);
+
+        fixture.some_char_ptr = &a;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &a_too;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b_too;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c_too;
+        assert(!expr->evaluate(fixture));
+    }
+
+    // test not_equals
+    {
+        // make an expression : given char* != 'a'
+        auto expr = make_expr(&test_fixture::some_char_ptr, &op::not_equals, &a);
+
+        fixture.some_char_ptr = &a;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &a_too;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b_too;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c_too;
+        assert(expr->evaluate(fixture));
+    }
+
+    // test less_than
+    {
+        // make an expression : given char* < 'b'
+        auto expr = make_expr(&test_fixture::some_char_ptr, &op::less_than, &b);
+
+        fixture.some_char_ptr = &a;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &a_too;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b_too;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c_too;
+        assert(!expr->evaluate(fixture));
+    }
+
+    // test greater_than
+    {
+        // make an expression : given char* > 'b'
+        auto expr = make_expr(&test_fixture::some_char_ptr, &op::greater_than, &b);
+
+        fixture.some_char_ptr = &a;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &a_too;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &b_too;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_char_ptr = &c_too;
+        assert(expr->evaluate(fixture));
+    }
 }
