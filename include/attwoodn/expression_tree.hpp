@@ -4,26 +4,51 @@ namespace attwoodn::expression_tree {
 
     namespace op {
         
-        template<typename A, typename B>
-        inline bool less_than(A a, B b) {
+        template<typename T>
+        inline bool less_than(T a, T b) {
             return a < b;
         }
 
-        template<typename A, typename B>
-        inline bool greater_than(A a, B b) {
+        template<typename T>
+        inline bool less_than(T* a, T* b) {
+            if(a == nullptr || b == nullptr) return false;
+            return *a < *b;
+        }
+
+        template<typename T>
+        inline bool greater_than(T a, T b) {
             return a > b;
         }
 
-        template<typename A, typename B>
-        inline bool equals(A a, B b) {
+        template<typename T>
+        inline bool greater_than(T* a, T* b) {
+            if(a == nullptr || b == nullptr) return false;
+            return *a > *b;
+        }
+
+        template<typename T>
+        inline bool equals(T a, T b) {
             return a == b;
         }
 
-        template<typename A, typename B>
-        inline bool not_equals(A a, B b) {
+        template<typename T>
+        inline bool equals(T* a, T* b) {
+            if(a == nullptr && b == nullptr) return true;
+            if(a == nullptr || b == nullptr) return false;
+            return *a == *b;
+        }
+
+        template<typename T>
+        inline bool not_equals(T a, T b) {
             return a != b;
         }
         
+        template<typename T>
+        inline bool not_equals(T* a, T* b) {
+            if(a == nullptr && b == nullptr) return false;
+            if(a == nullptr || b == nullptr) return true;
+            return *a != *b;
+        }
     }
 
     namespace tree {
