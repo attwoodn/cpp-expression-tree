@@ -51,21 +51,42 @@ namespace attwoodn::expression_tree {
         }
     }
 
-    namespace tree {
+    namespace node {
 
         /**
-         * The base class representing expression tree nodes
+         * @brief The base class representing all expression tree nodes.
         */
         template<typename Obj>
         class expression_tree_node_base {
             public:
                 virtual ~expression_tree_node_base() {};
+
+                /**
+                 * @brief Evaluates the given object to determine if it satisfies the expressions defined in this node and all child nodes.
+                 * 
+                 * @returns True if the given object satisfied the expression in this node and all the expressions of all nodes 
+                 *              under this node in the expression tree;
+                 * 
+                 *          False if the given object did not satisfy the epression in this node and all the expressions of all 
+                 *              nodes under this node in the expression tree. 
+                */
                 virtual bool evaluate(const Obj& obj) = 0;
         };
 
-        class expression_tree_op_node;
-        class expression_tree_leaf_node;
+        /**
+         * 
+        */
+        template<typename Obj, typename LeftChild, typename RightChild>
+        class expression_tree_op_node : public expression_tree_node_base<Obj> {
+
+        };
         
+        template<typename Obj, typename Op, typename CompValue>
+        class expression_tree_leaf_node : public expression_tree_node_base<Obj> {
+
+        };
 
     }
+
+
 }
