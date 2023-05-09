@@ -6,14 +6,16 @@ using namespace attwoodn::expression_tree;
 
 struct test_fixture {
     std::string some_string;
+    char* some_char_ptr;
 };
 
 template<class T> struct type_id{typedef T type;}; 
 
-// template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue*, CompValue*)>::type>
-// node::expression_tree_leaf_node<Obj, Op, CompValue>* make_leaf_node( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
-//     return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
-// }
+template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue*, CompValue*)>::type,
+         typename std::enable_if<std::is_convertible<CompValue, CompValue*>::value, int>::type = 0>
+node::expression_tree_leaf_node<Obj, Op, CompValue>* make_leaf_node( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
+    return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
+}
 
 template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
 node::expression_tree_leaf_node<Obj, Op, CompValue>* make_leaf_node( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
