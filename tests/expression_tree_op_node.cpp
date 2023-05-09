@@ -1,6 +1,7 @@
 #include <attwoodn/expression_tree.hpp>
 #include "test_utils.hpp"
 #include <limits>
+#include <memory>
 #include <iostream>
 #include <cassert>
 
