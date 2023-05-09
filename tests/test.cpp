@@ -1,7 +1,7 @@
-#include <attwoodn/expression_tree.hpp>
+#include <iostream>
 
 int main(int argc, char** argv) {
-    attwoodn::expression_tree::say_hello();
+    std::cout << "hello world!" << std::endl;
 
     return EXIT_SUCCESS;
 }
