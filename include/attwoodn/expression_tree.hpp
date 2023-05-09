@@ -218,14 +218,28 @@ namespace attwoodn::expression_tree {
 
     template<class T> struct type_id{typedef T type;}; 
 
+    /**
+     * Makes an expression tree leaf node for comparing pointer-type member variables of a class/struct
+    */
     template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue*, CompValue*)>::type,
         typename std::enable_if<std::is_convertible<CompValue, CompValue*>::value, int>::type = 0>
     node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
         return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
     }
 
+    /**
+     * Makes an expression tree leaf node for comparing value-type member variables of a class/struct
+    */
     template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
     node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( const CompValue Obj::* member_var, Op op, CompValue comp_value ) {
         return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
+    }
+
+    /**
+     * Makes an expression tree leaf node for comparing a class/struct's const member function return values
+    */
+    template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
+    node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue (Obj::* member_func)() const, Op op, CompValue comp_value ) {
+        return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_func, op, comp_value );
     }
 }

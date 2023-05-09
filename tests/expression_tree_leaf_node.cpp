@@ -1,4 +1,5 @@
 #include <attwoodn/expression_tree.hpp>
+#include <limits>
 #include <iostream>
 #include <cassert>
 
@@ -8,14 +9,23 @@ struct test_fixture {
     std::string some_string;
     const std::string some_const_string = "this IS 4 T3s7 $tRing    ";
     char* some_char_ptr;
+    uint16_t some_uint;
+
+    bool is_some_uint_greater_than_zero() const {
+        return some_uint;
+    }
 };
 
 void test_string_evaluation();
 void test_char_ptr_evaluation();
+void test_uint_evaluation();
+void test_const_func_evaluation();
 
 int main(int argc, char** argv) {
     test_string_evaluation();
     test_char_ptr_evaluation();
+    test_uint_evaluation();
+    test_const_func_evaluation();
 
     return EXIT_SUCCESS;
 }
@@ -370,5 +380,225 @@ void test_char_ptr_evaluation() {
 
         fixture.some_char_ptr = &c_too;
         assert(expr->evaluate(fixture));
+    }
+}
+
+void test_uint_evaluation() {
+    test_fixture fixture;
+
+    // test equals
+    {
+        auto expr = make_expr(&test_fixture::some_uint, op::equals, (uint16_t) 9001);
+
+        fixture.some_uint = 0;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 9000;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 9002;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 9001;
+        assert(expr->evaluate(fixture));
+    }
+
+    // test not_equals
+    {
+        auto expr = make_expr(&test_fixture::some_uint, op::not_equals, (uint16_t) 9001);
+
+        fixture.some_uint = 0;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 9000;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 9002;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 9001;
+        assert(!expr->evaluate(fixture));
+    }
+
+    // test less_than
+    {
+        auto expr = make_expr(&test_fixture::some_uint, op::less_than, (uint16_t) 9001);
+
+        fixture.some_uint = 0;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 9000;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 9002;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 9001;
+        assert(!expr->evaluate(fixture));
+    }
+
+    // test greater_than
+    {
+        auto expr = make_expr(&test_fixture::some_uint, op::greater_than, (uint16_t) 9001);
+
+        fixture.some_uint = 0;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 9000;
+        assert(!expr->evaluate(fixture));
+
+        fixture.some_uint = 9002;
+        assert(expr->evaluate(fixture));
+
+        fixture.some_uint = 9001;
+        assert(!expr->evaluate(fixture));
+    }
+}
+
+void test_const_func_evaluation() {
+    test_fixture fixture;
+
+    // test equals
+    {
+        auto expr1 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::equals, true);
+        auto expr2 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::equals, false);
+
+        fixture.some_uint = 0;
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::min();
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = 500;
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::max();
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+    }
+
+    // test not_equals
+    {
+        auto expr1 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::not_equals, true);
+        auto expr2 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::not_equals, false);
+
+        fixture.some_uint = 0;
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::min();
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = 500;
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::max();
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+    }
+
+    // test less_than
+    {
+        auto expr1 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::less_than, true);
+        auto expr2 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::less_than, false);
+
+        fixture.some_uint = 0;
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::min();
+        assert(expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(!expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = 500;
+        assert(!expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::max();
+        assert(!expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(!expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+    }
+
+    // test greater_than
+    {
+        auto expr1 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::greater_than, true);
+        auto expr2 = make_expr(&test_fixture::is_some_uint_greater_than_zero, &op::greater_than, false);
+
+        fixture.some_uint = 0;
+        assert(!expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::min();
+        assert(!expr1->evaluate(fixture));
+        assert(!expr2->evaluate(fixture));
+
+        fixture.some_uint = 1;
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = 500;
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = std::numeric_limits<uint16_t>::max();
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
+
+        fixture.some_uint = -1;
+        assert(!expr1->evaluate(fixture));
+        assert(expr2->evaluate(fixture));
     }
 }
