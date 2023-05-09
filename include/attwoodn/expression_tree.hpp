@@ -180,7 +180,12 @@ namespace attwoodn::expression_tree {
                 ~expression_tree_leaf_node() override {};
 
                 bool evaluate(const Obj& obj) override {
-                    if (!member_func_ && !member_var_) {
+                    if (member_func_ && member_var_) {
+                        throw std::runtime_error("expression_tree_leaf_node has both a member function reference " + 
+                            std::string("and member variable reference. Only one is permitted"));
+                    }
+
+                    else if (!member_func_ && !member_var_) {
                         throw std::runtime_error("expression_tree_leaf_node has a nullptr for both member function reference " + 
                             std::string("and member variable reference. At least one is required"));
                     }
@@ -199,7 +204,7 @@ namespace attwoodn::expression_tree {
 
                     else return false;
 
-                    return Op(actual_value, comp_value_);
+                    return logical_op_(actual_value, comp_value_);
                 }
 
             private:
