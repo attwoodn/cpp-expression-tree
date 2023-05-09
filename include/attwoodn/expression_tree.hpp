@@ -7,7 +7,7 @@ namespace attwoodn::expression_tree {
     namespace op {
         
         template<typename T>
-        inline bool less_than(T a, T b) {
+        inline bool less_than(const T a, const T b) {
             return a < b;
         }
 
@@ -18,7 +18,7 @@ namespace attwoodn::expression_tree {
         }
 
         template<typename T>
-        inline bool greater_than(T a, T b) {
+        inline bool greater_than(const T a, const T b) {
             return a > b;
         }
 
@@ -29,7 +29,7 @@ namespace attwoodn::expression_tree {
         }
 
         template<typename T>
-        inline bool equals(T a, T b) {
+        inline bool equals(const T a, const T b) {
             return a == b;
         }
 
@@ -41,7 +41,7 @@ namespace attwoodn::expression_tree {
         }
 
         template<typename T>
-        inline bool not_equals(T a, T b) {
+        inline bool not_equals(const T a, const T b) {
             return a != b;
         }
         
@@ -164,7 +164,7 @@ namespace attwoodn::expression_tree {
                 /**
                  * @brief Constructor that accepts a reference to a member variable of Obj
                 */
-                expression_tree_leaf_node(CompValue Obj::* obj_mem_var, Op op, CompValue comp_value)
+                expression_tree_leaf_node(const CompValue Obj::* obj_mem_var, Op op, CompValue comp_value)
                     : member_var_(obj_mem_var),
                       logical_op_(op),
                       comp_value_(comp_value) {}
@@ -209,7 +209,7 @@ namespace attwoodn::expression_tree {
 
             private:
                 CompValue (Obj::* member_func_)() const = nullptr;
-                CompValue Obj::* member_var_ = nullptr;
+                const CompValue Obj::* member_var_ = nullptr;
                 Op logical_op_;
                 CompValue comp_value_;
         };
@@ -219,13 +219,13 @@ namespace attwoodn::expression_tree {
     template<class T> struct type_id{typedef T type;}; 
 
     template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue*, CompValue*)>::type,
-            typename std::enable_if<std::is_convertible<CompValue, CompValue*>::value, int>::type = 0>
+        typename std::enable_if<std::is_convertible<CompValue, CompValue*>::value, int>::type = 0>
     node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
         return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
     }
 
     template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
-    node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue Obj::* member_var, Op op, CompValue comp_value ) {
+    node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( const CompValue Obj::* member_var, Op op, CompValue comp_value ) {
         return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
     }
 }
