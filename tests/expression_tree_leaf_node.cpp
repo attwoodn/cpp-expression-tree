@@ -1,20 +1,10 @@
 #include <attwoodn/expression_tree.hpp>
+#include "test_utils.hpp"
 #include <limits>
 #include <iostream>
 #include <cassert>
 
 using namespace attwoodn::expression_tree;
-
-struct test_fixture {
-    std::string some_string;
-    const std::string some_const_string = "this IS 4 T3s7 $tRing    ";
-    char* some_char_ptr;
-    uint16_t some_uint;
-
-    bool is_some_uint_greater_than_zero() const {
-        return some_uint;
-    }
-};
 
 void test_string_evaluation();
 void test_char_ptr_evaluation();
