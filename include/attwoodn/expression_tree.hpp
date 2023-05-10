@@ -84,12 +84,12 @@ namespace attwoodn::expression_tree {
                  *          False if the given object did not satisfy the expression in this node and the expressions of all 
                  *              nodes under this node in the expression tree. 
                 */
-                virtual bool evaluate(const Obj& obj) = 0;
+                virtual bool evaluate(const Obj& obj) const = 0;
 
                 /**
                  * @brief Performs a deep clone of pointers to this base class to avoid object slicing.
                 */
-                auto clone() {
+                auto clone() const {
                     return std::unique_ptr<expression_tree_node<Obj>>(clone_impl());
                 }
                 
@@ -105,6 +105,11 @@ namespace attwoodn::expression_tree {
         class expression_tree_op_node : public expression_tree_node<Obj> {
             public:
                 using this_type = expression_tree_op_node<Obj, LeftChild, RightChild>;
+
+                expression_tree_op_node() = delete;
+                expression_tree_op_node(expression_tree_op_node&& other) = delete;
+                expression_tree_op_node& operator=(const expression_tree_op_node& other) = delete;
+                expression_tree_op_node& operator=(expression_tree_op_node&& other) = delete;
 
                 expression_tree_op_node(boolean_op bool_op)
                     : bool_op_(bool_op) {}
@@ -134,7 +139,7 @@ namespace attwoodn::expression_tree {
                     delete l;
                 }
 
-                bool evaluate(const Obj& obj) override {
+                bool evaluate(const Obj& obj) const override {
                     if(!left_ || !right_) {
                         throw std::runtime_error("expression_tree_op_node has a missing child node");
                     }
@@ -237,6 +242,13 @@ namespace attwoodn::expression_tree {
             public:
                 using this_type = expression_tree_leaf_node<Obj, Op, CompValue>;
 
+                expression_tree_leaf_node() = delete;
+                
+                expression_tree_leaf_node(const expression_tree_leaf_node& other) = default;
+                expression_tree_leaf_node(expression_tree_leaf_node&& other) = default;
+                expression_tree_leaf_node& operator=(const expression_tree_leaf_node& other) = default;
+                expression_tree_leaf_node& operator=(expression_tree_leaf_node&& other) = default;
+
                 /**
                  * @brief Constructor that accepts a reference to a member variable of Obj
                 */
@@ -255,7 +267,7 @@ namespace attwoodn::expression_tree {
 
                 ~expression_tree_leaf_node() override {};
 
-                bool evaluate(const Obj& obj) override {
+                bool evaluate(const Obj& obj) const override {
                     if (member_func_ && member_var_) {
                         throw std::runtime_error("expression_tree_leaf_node has both a member function reference " + 
                             std::string("and member variable reference. Only one is permitted"));
@@ -391,28 +403,46 @@ namespace attwoodn::expression_tree {
 
             expression_tree(node::expression_tree_node<Obj>* expr) {
                 if(!expr) {
-                    throw std::runtime_error("Attempted to construct an expression_tree with a null root expression node");
+                    throw std::runtime_error("Attempted to construct an expression_tree using a null expression");
                 }
-
                 expr_ = expr->clone().release();
                 delete expr;
             }
 
-            expression_tree(const expression_tree& other)
-                    : expr_(other.expr_->clone().release()) {}
+            expression_tree(std::unique_ptr<node::expression_tree_node<Obj>> expr)
+                    : expression_tree(expr.release()) {}
 
-            expression_tree(expression_tree&& other)
-                    : expr_(other.expr_) {
+            expression_tree(const expression_tree& other) {
+                if(!other.expr_) {
+                    throw std::runtime_error("Attempted to copy construct an expression_tree " + 
+                        std::string("from an expression_tree with a null expression"));
+                }
+                expr_ = other.expr_->clone().release();
+            }
+
+            expression_tree(expression_tree&& other) {
+                if(!other.expr_) {
+                    throw std::runtime_error("Attempted to move construct an expression_tree " + 
+                        std::string("from an expression_tree with a null expression"));
+                }
+                expr_ = other.expr_;
                 other.expr_ = nullptr;
             }
 
             expression_tree& operator=(const expression_tree& other) {
+                if(!other.expr_) {
+                    throw std::runtime_error("Attempted copy assignment from an expression_tree with a null expression");
+                }
                 delete expr_;
                 expr_ = other.expr_->clone().release();
                 return *this;
             }
 
-            expression_tree& operator=(const expression_tree&& other) {
+            expression_tree& operator=(expression_tree&& other) {
+                if(!other.expr_) {
+                    throw std::runtime_error("Attempted move assignment from an expression_tree with a null expression");
+                }
+                
                 if(this != &other) {
                     delete expr_;
                     expr_ = other.expr_;
@@ -431,7 +461,7 @@ namespace attwoodn::expression_tree {
              * @returns True if the given object satisfied the expression tree conditions;
              *          False if the given object did not satisfy the expression tree conditions. 
             */
-            bool evaluate(const Obj& obj) {
+            bool evaluate(const Obj& obj) const {
                 if(!expr_) {
                     throw std::runtime_error("expression_tree has a null root expression node");
                 }
