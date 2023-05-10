@@ -1,14 +1,12 @@
 
-# CPP Expression Tree
+# Cpp Expression Tree
 
-Header-only C++14 library for creating and evaluating logical expression trees. 
+Cpp Expression Tree is a header-only, C++14 library for creating logical expression trees and using them to evaluate instances of user-defined data types. 
 
 Inspired by m-peko/booleval.
 
-<br/>
-
 This project is under development and is subject to change. Project contributions and issue reports are welcome. The more the merrier! 
-( ... well, hopefully not too many bug reports)
+( ... well, maybe not so much for bug reports)
 
 ## Table of Contents
 
@@ -98,4 +96,4 @@ After cloning and compiling the project, navigate to the build directory that wa
 ctest .
 ```
 
-This will execute the unit tests and provide a pass/fail indication for each one.
+CTest will execute the unit tests and provide a pass/fail indication for each one.
