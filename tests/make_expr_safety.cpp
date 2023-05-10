@@ -1,14 +1,10 @@
 #include <attwoodn/expression_tree.hpp>
+#include "test_utils.hpp"
 #include <cassert>
 
 using namespace attwoodn::expression_tree;
 
 void make_expr_memory_safety_test();
-
-struct my_type {
-   int my_int = 5;
-   bool my_bool = true;
-};
 
 int main(int argc, char** argv) {
     make_expr_memory_safety_test();

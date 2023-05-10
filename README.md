@@ -24,20 +24,67 @@ This project is under development and is subject to change. Project contribution
 ## A Quick Example
 
 ```cpp
-// some code here
-// imagine we have some class struct whatever ...
-// we can create an expression_tree for evaluating the contents of instances of this struct class whatever
+#include <attwoodn/expression_tree.hpp>
+
+using namespace attwoodn::expression_tree;
+
+// imagine there is some user-defined type, like so
+struct my_type {
+    int my_int;
+    bool my_bool;
+
+    int get_my_int() const {
+        return my_int;      
+    }
+};
+
+...
+
+// the Cpp Expression Tree library can be used to create an expression tree to evaluate instances of my_type
+
+// create an expression tree: my_bool == true OR (get_my_int() > 0 AND my_int < 10)
+expression_tree<my_type> expr {
+    make_expr(&my_type::my_bool, op::equals, true)
+    ->OR((make_expr(&my_type::get_my_int, op::greater_than, 0)
+        ->AND(make_expr(&my_type::my_int, op::less_than, 10))
+        )
+    )
+};
+
+// create an instance of my_type that satisfies the above expression
+my_type obj;
+obj.my_bool = true;
+obj.my_int = 4;
+
+// evaluating obj against the expression_tree above returns true
+assert(expr.evaluate(obj));
+
+// update obj so that my_int is outside the range 1..9
+obj.my_bool = true;
+obj.my_int = 12;
+
+// evaluating obj against the expression_tree above returns true
+assert(expr.evaluate(obj));
+
+// update obj so that my_bool is false and my_int is outside the range 1..9
+obj.my_bool = false;
+obj.my_int = 0;
+
+// evaluating obj against the expression_tree above returns false
+assert(!expr.evaluate(obj));
 ```
 
-Below is a tree diagram showing the content of the expression_tree that was created in the example code above:
+Below is a diagram showing the content of the `expression_tree<my_type>` that was created in the example code above:
 
 <p align="center">
-    <img src="docs/expression-tree.png"/>
+    <img src="docs/a_quick_example_expression_tree.png"/>
 </p>
+
+As you can imagine, this example code can be expanded to fit a variety of use cases and struct/class type structures. More complex code examples are provided in the documentation below. Further, there are a number of unit tests located in the `tests` directory, which may be helpful for getting familiar with the library.
 
 ## Creating Expression Trees
 
-The `expression_tree` class is a templated, RAII container class that takes ownership of user-defined expressions. The template parameter of `expression_tree` is the type of object that the `expression_tree` can evaluate. Assuming there is a user-defined class named `my_type`, the templated `expression_tree` type would look like this: `expression_tree<my_type>`. The template argument of `expression_tree` cannot be a primitive type, like `int`, `char`, or `double`.
+The `expression_tree` class is a templated, RAII container class that takes ownership of user-defined expressions. The `expression_tree` class can be moved and/or copied to different contexts while maintaining consistency and safety. The template parameter of `expression_tree` is the type of object that the `expression_tree` can evaluate. Assuming there is a user-defined class named `my_type`, the templated `expression_tree` type would look like this: `expression_tree<my_type>`. The template argument of `expression_tree` cannot be a primitive type, like `int`, `char`, or `double`.
 
 An `expression_tree` cannot be default constructed - it must be initialized with an expression. Users can easily and intuitively define expressions using one of the `make_expr` helper functions found in the namespace `attwoodn::expression_tree`. `make_expr` generates heap-allocated pointers to expression tree nodes and returns them. As such, the returned expression tree node pointers should be managed carefully. If the returned pointers are not wrapped in an `expression_tree` or a smart pointer, they will need to be explicitly `delete`d by the calling code. 
 
@@ -49,19 +96,28 @@ Here are some examples of how you might handle the return value from one of the 
 
 using namespace attwoodn::expression_tree;
 
+// let's bring back the same implementation of my_type as shown above
 struct my_type {
-   int my_int = 5;
-   bool my_bool = true;
+    int my_int;
+    bool my_bool;
+
+    int get_my_int() const {
+        return my_int;      
+    }
 };
 
+
 ...
+
 
 // The heap-allocated expression node pointer returned by make_expr becomes owned by the expression_tree
 expression_tree<my_type> expr_tree_raw {
     make_expr(&my_type::my_bool, op::equals, true)
 };
  
+
 ...
+
 
 // The heap-allocated expression node pointer returned by make_expr becomes owned by the unique_ptr
 std::unique_ptr<node::expression_tree_node<my_type>> smart_expr {
@@ -71,7 +127,9 @@ std::unique_ptr<node::expression_tree_node<my_type>> smart_expr {
 // the expression_tree takes ownership of the unique_ptr
 expression_tree<my_type> expr_tree_smart(std::move(smart_expr));
 
+
 ...
+
 
 // The heap-allocated expression node pointer returned by make_expr must be explicitly deleted
 auto* expr_raw = make_expr(&my_type::my_bool, op::equals, true);
@@ -205,4 +263,6 @@ After cloning and compiling the project, navigate to the build directory that wa
 ctest .
 ```
 
-CTest will execute the unit tests and provide a pass/fail indication for each one.
+CTest will execute the unit tests and provide a pass/fail indication for each one. 
+
+The address sanitizer is enabled on every unit test executable. A test will fail should memory leak during test execution.

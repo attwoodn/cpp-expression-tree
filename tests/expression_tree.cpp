@@ -6,6 +6,7 @@
 using namespace attwoodn::expression_tree;
 
 void test_expression_tree_std_string_template();
+void test_quick_example_expression_tree();
 void test_simple_expression_tree();
 void test_complex_expression_tree();
 void test_moved_expression_tree();
@@ -14,6 +15,7 @@ void test_user_defined_operator();
 
 int main(int argc, char** argv) {
     test_expression_tree_std_string_template();
+    test_quick_example_expression_tree();
     test_simple_expression_tree();
     test_complex_expression_tree();
     test_moved_expression_tree();
@@ -21,6 +23,30 @@ int main(int argc, char** argv) {
     test_user_defined_operator();
 
     return EXIT_SUCCESS;
+}
+
+void test_quick_example_expression_tree() {
+    expression_tree<my_type> expr {
+        make_expr(&my_type::my_bool, op::equals, true)
+        ->OR((make_expr(&my_type::get_my_int, op::greater_than, 0)
+            ->AND(make_expr(&my_type::my_int, op::less_than, 10))
+            )
+        )
+    };
+    
+    my_type obj;
+    
+    obj.my_bool = true;
+    obj.my_int = 4;
+    assert(expr.evaluate(obj));
+
+    obj.my_bool = true;
+    obj.my_int = 12;
+    assert(expr.evaluate(obj));
+
+    obj.my_bool = false;
+    obj.my_int = 0;
+    assert(!expr.evaluate(obj));
 }
 
 void test_expression_tree_std_string_template() {
