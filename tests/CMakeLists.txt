@@ -20,9 +20,9 @@ if(BUILD_TESTING)
     target_compile_options( expression_tree_test PRIVATE -fsanitize=address )
     add_test( expression_tree_test ${EXECUTABLE_OUTPUT_PATH}/expression_tree_test )
 
-    add_executable( examples examples.cpp )
-    target_link_libraries( examples "-fsanitize=address" )
-    target_compile_options( examples PRIVATE -fsanitize=address )
-    add_test( examples ${EXECUTABLE_OUTPUT_PATH}/examples )
+    add_executable( make_expr_safety_test make_expr_safety.cpp )
+    target_link_libraries( make_expr_safety_test "-fsanitize=address" )
+    target_compile_options( make_expr_safety_test PRIVATE -fsanitize=address )
+    add_test( make_expr_safety_test ${EXECUTABLE_OUTPUT_PATH}/make_expr_safety_test )
 
 endif()
