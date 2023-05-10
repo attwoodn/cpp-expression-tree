@@ -4,18 +4,31 @@
 
 using namespace attwoodn::expression_tree;
 
+void test_expression_tree_std_string_template();
 void test_simple_expression_tree();
 void test_complex_expression_tree();
 void test_moved_expression_tree();
 void test_copied_expression_tree();
 
 int main(int argc, char** argv) {
+    test_expression_tree_std_string_template();
     test_simple_expression_tree();
     test_complex_expression_tree();
     test_moved_expression_tree();
     test_copied_expression_tree();
 
     return EXIT_SUCCESS;
+}
+
+void test_expression_tree_std_string_template() {
+    expression_tree<std::string> expr {
+        make_expr(&std::string::empty, op::equals, true)
+    };
+
+    assert(expr.evaluate(""));
+    assert(!expr.evaluate(" "));
+    assert(!expr.evaluate("hello"));
+    assert(!expr.evaluate("good bye"));
 }
 
 void test_simple_expression_tree() {
