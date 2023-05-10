@@ -103,8 +103,71 @@ There are several logical operator functions defined in the namespace `attwoodn:
 Users of the library can also easily define their own logical operators and use them when creating expressions. Here is an example of how a user might create their own operator functions and use them in an expression:
 
 ```cpp
-// some code here
-// is_pointer functions: always returns false (value parameters), always returns true (pointer parameters)
+using namespace attwoodn::expression_tree;
+
+struct packet_payload {
+    uint16_t error_code; 
+    std::string data;
+    bool checksum_ok;
+
+    uint64_t payload_size() const {
+        return data.size();
+    }
+};
+
+class data_packet {
+    public:
+        std::string sender_name;
+        packet_payload payload;
+};
+
+...
+
+// user creates their own logical operator for evaluating incoming packet_payload objects
+auto is_small_packet_payload = [](const packet_payload& incoming, const packet_payload&) -> bool {
+    if(incoming.error_code == 0 && incoming.checksum_ok && incoming.payload_size() <= 10) {
+        return true;
+    }
+    return false;
+};
+
+// Create an expression that only accepts small, non-errored data packets from Jim. 
+// evaluate packet contents using the user-defined lambda operator defined above
+expression_tree<data_packet> expr {
+    make_expr(&data_packet::sender_name, op::equals, std::string("Jim"))
+    ->AND(make_expr(&data_packet::payload, is_small_packet_payload, packet_payload()))
+};
+
+data_packet incoming_packet;
+
+// Jim sends a small, non-errored data packet
+incoming_packet.sender_name = "Jim";
+incoming_packet.payload.checksum_ok = true;
+incoming_packet.payload.data = "hello!";
+incoming_packet.payload.error_code = 0;
+assert(expr.evaluate(incoming_packet));      // passes evaluation
+
+// Pam sends the same packet payload
+incoming_packet.sender_name = "Pam";
+assert(!expr.evaluate(incoming_packet));     // fails evaluation. No messages from Pam are accepted (sorry Pam)
+
+// Jim sends a packet with a bad checksum
+incoming_packet.sender_name = "Jim";
+incoming_packet.payload.checksum_ok = false;
+assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet was from Jim, but the checksum was bad
+
+// Jim sends a packet whose payload is too big
+incoming_packet.payload.checksum_ok = true;
+incoming_packet.payload.data = "Boy do I have a long story for you - so I was talking to Pam ...";
+assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet's payload was too big. Give me the TLDR next time, Jim
+
+// Jim sends a small, rude packet
+incoming_packet.payload.data = "Dwight sux";
+assert(expr.evaluate(incoming_packet));      // passes evaluation. The packet's payload was the right size this time
+
+// Jim sends a packet has an error code
+incoming_packet.payload.error_code = 404;
+assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet's payload had an error code
 ```
 
 ## Boolean Operators
