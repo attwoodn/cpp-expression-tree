@@ -248,21 +248,21 @@ assert(!expr.evaluate(incoming_packet));   // fails evaluation. Payload was too 
 incoming_packet.payload.data = "Dwight sux";
 assert(expr.evaluate(incoming_packet));    // passes evaluation. The payload was the right size this time
 
-// Jim sends a packet has an error code
+// Jim sends a packet that has an error code
 incoming_packet.payload.error_code = 404;
 assert(!expr.evaluate(incoming_packet));   // fails evaluation. The payload had an error code
 ```
 
 ## Boolean Operators
 
-Boolean operators are used to chain individual expression tree nodes together. There are two boolean operators that can be used: `AND` and `OR`. These boolean operators are accessible via function calls on the expression nodes. Calling these functions generates a new expression tree node which becomes the parent of the nodes on either side of the boolean operator
+Boolean operators are used to chain individual expression tree nodes together. There are two boolean operators that can be used: `AND` and `OR`. These boolean operators are accessible via function calls on the expression nodes. Calling these functions generates a new expression tree op node which becomes the parent of the leaf nodes on either side of the boolean operator
 
 A complex expression tree can be created by calling these functions to chain multiple expression tree nodes together.
 
 
 ## Using this Library
 
-To include this library in your project, simply copy the content of the `include` directory into the `include` directory of your project. That's it! Now where did I put that Staples "Easy" button...?
+To include this library in your project, simply copy the content of the `include` directory into the `include` directory of your project. That's it! Now, where did I put that Staples "Easy" button...?
 
 
 ## Compiling
