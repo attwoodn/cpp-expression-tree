@@ -37,11 +37,9 @@ Below is a tree diagram showing the content of the expression_tree that was crea
 
 ## Creating Expression Trees
 
-The expression_tree class is a templated, RAII container class that takes ownership of user-defined expressions. The template parameter of expression_tree is the type of object that the expression_tree can evaluate. The template parameter of expression_tree cannot be a primitive type, like `int` or `char`.
+The `expression_tree` class is a templated, RAII container class that takes ownership of user-defined expressions. The template parameter of `expression_tree` is the type of object that the `expression_tree` can evaluate. Assuming there is a user-defined class named `my_type` to be evaluated, the templated `expression_tree` type would look like this: `expression_tree<my_type>`. The template parameter of `expression_tree` cannot be a primitive type, like `int`, `char`, or `double`.
 
-An expression_tree cannot be default constructed - it must be initialized with an expression. Users can easily and intuitively define expressions using one of the `make_expr` helper functions found in the namespace `attwoodn::expression_tree`.
-
-`make_expr` generates heap-allocated pointers to expression tree nodes and returns them. As such, the returned expression tree node pointers should be managed carefully. If the returned pointers are not wrapped in an expression_tree or a smart pointer, they will need to be explicitly `delete`d by the calling code. 
+An `expression_tree` cannot be default constructed - it must be initialized with an expression. Users can easily and intuitively define expressions using one of the `make_expr` helper functions found in the namespace `attwoodn::expression_tree`. `make_expr` generates heap-allocated pointers to expression tree nodes and returns them. As such, the returned expression tree node pointers should be managed carefully. If the returned pointers are not wrapped in an `expression_tree` or a smart pointer, they will need to be explicitly `delete`d by the calling code. 
 
 Here are some examples of how you might handle the return value from one of the `make_expr` helper functions:
 ```cpp
