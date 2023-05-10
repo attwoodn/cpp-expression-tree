@@ -32,3 +32,12 @@ class data_packet {
         std::string sender_name;
         packet_payload payload;
 };
+
+struct my_type {
+    int my_int;
+    bool my_bool;
+
+    int get_my_int() const {
+        return my_int;      
+    }
+};
