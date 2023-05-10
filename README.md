@@ -1,4 +1,3 @@
-
 # Cpp Expression Tree
 
 Cpp Expression Tree is a header-only, C++14 library for creating logical expression trees and using them to evaluate instances of user-defined data types. 
@@ -7,6 +6,7 @@ Inspired by m-peko/booleval.
 
 This project is under development and is subject to change. Project contributions and issue reports are welcome. The more the merrier! 
 ( ... well, maybe not so much for bug reports)
+
 
 ## Table of Contents
 
@@ -18,8 +18,9 @@ This project is under development and is subject to change. Project contribution
 * [Logical Operators](#logical-operators)
 * [Boolean Operators](#boolean-operators)
 * [Using this Library](#using-this-library)
-* [Compilation](#compilation)
+* [Compiling](#compiling)
     * [Running the Unit Tests](#running-the-unit-tests)
+
 
 ## A Quick Example
 
@@ -80,11 +81,12 @@ Below is a diagram showing the content of the `expression_tree<my_type>` created
 
 As you can imagine, this example code can be expanded to fit a variety of use cases and user-defined types. More complex code examples are provided in the documentation below. Further, there are a number of unit tests located in the `tests` directory, which may be helpful for getting familiar with the library.
 
+
 ## Creating Expression Trees
 
 The `expression_tree` class is a templated, RAII container class that takes ownership of user-defined expressions. Instances of `expression_tree` can be moved and/or copied to different contexts while maintaining consistency and memory safety. The template parameter of `expression_tree` defines the type of object that the `expression_tree` will evaluate. Assuming there is a user-defined struct named `my_type`, the templated `expression_tree` type would look like this: `expression_tree<my_type>`. The template argument of `expression_tree` cannot be a primitive type, like `int`, `char`, or `double`.
 
-An `expression_tree` cannot be default constructed - it must be initialized with an expression. Users can easily and intuitively define expressions using one of the `make_expr` helper functions found in the namespace `attwoodn::expression_tree`. `make_expr` generates heap-allocated pointers to expression tree nodes and returns them. As such, the returned expression tree node pointers should be managed carefully. If the returned pointers are not wrapped in an `expression_tree` or a smart pointer, they will need to be explicitly `delete`d by the calling code. 
+An `expression_tree` cannot be default constructed - it must be initialized with an expression. Users can easily and intuitively define expressions using one of the `make_expr` helper functions found in the namespace `attwoodn::expression_tree`. `make_expr` generates heap-allocated pointers to expression tree nodes and returns them. As such, the returned expression tree node pointers should be managed carefully. If the returned pointers are not wrapped in an `expression_tree` or a smart pointer, they will need to be explicitly deleted by the calling code. 
 
 Here are some examples of how a user may safely handle the return value from one of the `make_expr` helper functions:
 ```cpp
@@ -136,6 +138,7 @@ delete expr_raw;
 
 Please see the section below for more information about expression tree nodes.
 
+
 ## Types of Expression Tree Nodes
 
 There are two types of expression tree nodes: leaf nodes and op nodes. 
@@ -148,9 +151,10 @@ Expression tree leaf nodes contain individual, actionable expressions against wh
 
 Expression tree op nodes contain a boolean operation (AND/OR) and have references to a left child node and a right child node. The child nodes may be expression tree leaf nodes, expression tree op nodes, or a permutation of the two. Expression tree op nodes are only ever found in the inner part of the tree. An expression tree op node is always a parent node and it always has two child nodes.
 
+
 ## Logical Operators
 
-There are several logical operator functions defined in the namespace `attwoodn::expression_tree::op`, which can be used to create expression tree leaf nodes. The included operators are:
+There are several logical operator functions defined in the namespace `attwoodn::expression_tree::op` that can be used to create expression tree leaf nodes. The included operators are:
  * equals
  * not_equals
  * less_than
@@ -220,45 +224,42 @@ incoming_packet.sender_name = "Jim";
 incoming_packet.payload.checksum_ok = true;
 incoming_packet.payload.data = "hello!";
 incoming_packet.payload.error_code = 0;
-assert(expr.evaluate(incoming_packet));      // passes evaluation
+assert(expr.evaluate(incoming_packet));    // passes evaluation
 
 // Pam sends the same packet payload
 incoming_packet.sender_name = "Pam";
-assert(!expr.evaluate(incoming_packet));     // fails evaluation. No messages from Pam are accepted (sorry Pam)
+assert(!expr.evaluate(incoming_packet));   // fails evaluation. No packets from Pam are accepted (sorry)
 
 // Jim sends a packet with a bad checksum
 incoming_packet.sender_name = "Jim";
 incoming_packet.payload.checksum_ok = false;
-assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet was from Jim, but checksum was bad
+assert(!expr.evaluate(incoming_packet));   // fails evaluation. Packet was from Jim, but checksum failed
 
 // Jim sends a packet whose payload is too big
 incoming_packet.payload.checksum_ok = true;
 incoming_packet.payload.data = "Boy do I have a long story for you - so I was talking to Pam ...";
-assert(!expr.evaluate(incoming_packet));     // fails evaluation. The payload was too big. Give me the TLDR, Jim
+assert(!expr.evaluate(incoming_packet));   // fails evaluation. Payload was too big. Give me the TLDR, Jim
 
 // Jim sends a small, rude packet
 incoming_packet.payload.data = "Dwight sux";
-assert(expr.evaluate(incoming_packet));      // passes evaluation. The payload was the right size this time
+assert(expr.evaluate(incoming_packet));    // passes evaluation. The payload was the right size this time
 
 // Jim sends a packet has an error code
 incoming_packet.payload.error_code = 404;
-assert(!expr.evaluate(incoming_packet));     // fails evaluation. The payload had an error code
+assert(!expr.evaluate(incoming_packet));   // fails evaluation. The payload had an error code
 ```
 
 ## Boolean Operators
 
 Boolean operators are used to chain individual expression tree nodes together. There are two boolean operators that can be used: `AND` and `OR`. These boolean operators are accessible via function calls on the expression nodes. Calling these functions generates a new expression tree node which becomes the parent of the nodes on either side of the boolean operator
 
-```cpp
-// some code here
-// shows how nodes are chained with AND and OR functions
-```
-
 A complex expression tree can be created by calling these functions to chain multiple expression tree nodes together.
+
 
 ## Using this Library
 
 To include this library in your project, simply copy the content of the `include` directory into the `include` directory of your project. That's it! Now where did I put that Staples "Easy" button...?
+
 
 ## Compiling
 
@@ -274,7 +275,9 @@ make
 
 ### Running the Unit Tests
 
-After cloning and compiling the project, navigate to the build directory that was created. Enable the `BUILD_TESTING` CMake flag if it is not already enabled. Finally, run:
+After cloning and compiling the project, navigate to the build directory that was created. Enable the `BUILD_TESTING` CMake flag if it is not already enabled. My preferred tool for setting CMake flags via the command line is `ccmake`. Simply run `ccmake ..` in the build directory to get a command line UI for modifying CMake project flags. There, you can enable or disable the `BUILD_TESTING` flag, or set the build type from Release to Debug.
+
+With the `BUILD_TESTING` flag enabled, run the following command in the build directory:
 
 ```
 ctest .
