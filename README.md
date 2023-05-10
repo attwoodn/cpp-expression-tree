@@ -134,7 +134,11 @@ auto* expr_raw = make_expr(&my_type::my_bool, op::equals, true);
 delete expr_raw;
 ```
 
-// TODO document the three make_expr functions
+The `make_expr` helper function is templated and overloaded to allow for maximum compatibility for use within expressions. There are three definitions of `make_expr`:
+ * One that accepts a reference to a value-type class member variable, an operator function, and a comparison value (whose type matches the given class member variable);
+ * One that accepts a reference to a pointer-type class member variable, an operator function, and a pointer to a comparison value (whose type matches the given class member variable); and
+ * One that accepts a reference to a const class member function, an operator function, and a comparison value (whose type matches the return type of the given const class member function)
+ 
 
 Please see the section below for more information about expression tree nodes.
 

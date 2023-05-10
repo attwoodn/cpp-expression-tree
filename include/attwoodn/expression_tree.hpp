@@ -384,7 +384,7 @@ namespace attwoodn::expression_tree {
      * Makes an expression tree leaf node for comparing value-type member variables of a class/struct
     */
     template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
-    node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( const CompValue Obj::* member_var, Op op, CompValue comp_value ) {
+    node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( const CompValue Obj::* member_var, Op op, const CompValue comp_value ) {
         return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_var, op, comp_value );
     }
 
@@ -392,7 +392,7 @@ namespace attwoodn::expression_tree {
      * Makes an expression tree leaf node for comparing the return value from a class/struct's const member function
     */
     template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
-    node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue (Obj::* member_func)() const, Op op, CompValue comp_value ) {
+    node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue (Obj::* member_func)() const, Op op, const CompValue comp_value ) {
         return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_func, op, comp_value );
     }
 
