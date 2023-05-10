@@ -1,10 +1,9 @@
-<div align="center">
-    # CPP Expression Tree
-    
-    Header-only C++14 library for creating and evaluating logical expression trees. 
-    
-    Inspired by m-peko/booleval.
-</div>
+
+# CPP Expression Tree
+
+Header-only C++14 library for creating and evaluating logical expression trees. 
+
+Inspired by m-peko/booleval.
 
 <br/>
 
@@ -81,6 +80,8 @@ To include this library in your project, simply copy the content of the `include
 
 ## Compiling
 
+This project uses the CMake build system. The minimum CMake version is set to 3.10.
+
 First, clone the git repository and navigate into the local copy. Once you're there, run the following commands:
 
 ```
@@ -93,6 +94,8 @@ make
 
 After cloning and compiling the project, navigate to the build directory that was created. Enable the `BUILD_TESTING` CMake flag if it is not already enabled. Finally, run:
 
-`ctest .`
+```
+ctest .
+```
 
 This will execute the unit tests and provide a pass/fail indication for each one.
