@@ -18,8 +18,9 @@ struct test_fixture {
 };
 
 struct packet_payload {
-    const uint16_t error_code; 
+    uint16_t error_code; 
     std::string data;
+    bool checksum_ok;
 
     uint64_t payload_size() const {
         return data.size();
@@ -27,6 +28,7 @@ struct packet_payload {
 };
 
 class data_packet {
-    const uint32_t sender_id;
-    packet_payload payload;
+    public:
+        std::string sender_name;
+        packet_payload payload;
 };
