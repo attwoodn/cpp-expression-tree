@@ -145,6 +145,66 @@ namespace attwoodn::expression_tree {
                     return false;
                 }
 
+                /**
+                 * Performs an AND operation with an expression_tree_leaf_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was AND'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherOp, typename OtherCompValue, typename OtherLeafNode,
+                    std::enable_if<std::is_same<OtherLeafNode, expression_tree_leaf_node<Obj, OtherOp, OtherCompValue>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherLeafNode>* AND (OtherLeafNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherLeafNode>(boolean_op::AND);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
+                /**
+                 * Performs an OR operation with an expression_tree_leaf_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was OR'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherOp, typename OtherCompValue, typename OtherLeafNode,
+                    std::enable_if<std::is_same<OtherLeafNode, expression_tree_leaf_node<Obj, OtherOp, OtherCompValue>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherLeafNode>* OR (OtherLeafNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherLeafNode>(boolean_op::OR);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
+                /**
+                 * Performs an AND operation with another expression_tree_op_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was AND'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherLeftChild, typename OtherRightChild, typename OtherOpNode, 
+                    std::enable_if<std::is_same<OtherOpNode, expression_tree_op_node<Obj, OtherLeftChild, OtherRightChild>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherOpNode>* AND (OtherOpNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherOpNode>(boolean_op::AND);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
+                /**
+                 * Performs an OR operation with another expression_tree_op_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was OR'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherLeftChild, typename OtherRightChild, typename OtherOpNode,
+                    std::enable_if<std::is_same<OtherOpNode, expression_tree_op_node<Obj, OtherLeftChild, OtherRightChild>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherOpNode>* OR (OtherOpNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherOpNode>(boolean_op::OR);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
             private:
                 boolean_op bool_op_;
                 LeftChild* left_ { nullptr };
