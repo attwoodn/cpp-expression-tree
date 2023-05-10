@@ -11,6 +11,7 @@ This project is under development and is subject to change. Project contribution
 ## Table of Contents
 
 * [A Quick Example](#a-quick-example)
+* [Creating Expression Trees](#creating-expression-trees)
 * [Types of Expression Tree Nodes](#types-of-expression-tree-nodes)
     * [Expression Tree Leaf Nodes](#expression-tree-leaf-nodes)
     * [Expression Tree Op Nodes](#expression-tree-op-nodes)
@@ -31,8 +32,53 @@ This project is under development and is subject to change. Project contribution
 Below is a tree diagram showing the content of the expression_tree that was created in the example code above:
 
 <p align="center">
-    <img src="docs/booleval-tree.png"/>
+    <img src="docs/expression-tree.png"/>
 </p>
+
+## Creating Expression Trees
+
+The expression_tree class is a templated, RAII container class that takes ownership of user-defined expressions. The template parameter of expression_tree is the type of object that the expression_tree can evaluate. The template parameter of expression_tree cannot be a primitive type, like `int` or `char`.
+
+An expression_tree cannot be default constructed - it must be initialized with an expression. Users can easily and intuitively define expressions using one of the `make_expr` helper functions found in the namespace `attwoodn::expression_tree`.
+
+`make_expr` generates heap-allocated pointers to expression tree nodes and returns them. As such, the returned expression tree node pointers should be managed carefully. If the returned pointers are not wrapped in an expression_tree or a smart pointer, they will need to be explicitly `delete`d by the calling code. 
+
+Here are some examples of how you might handle the return value from one of the `make_expr` helper functions:
+```cpp
+#include <attwoodn/expression_tree.hpp>
+
+using namespace attwoodn::expression_tree;
+
+struct my_type {
+   int my_int = 5;
+   bool my_bool = true;
+};
+
+...
+
+// The heap-allocated expression node pointer returned by make_expr becomes owned by the expression_tree
+expression_tree<my_type> expr_tree_raw {
+    make_expr(&my_type::my_bool, op::equals, true)
+};
+ 
+...
+
+// The heap-allocated expression node pointer returned by make_expr becomes owned by the unique_ptr
+std::unique_ptr<node::expression_tree_node<my_type>> smart_expr {
+    make_expr(&my_type::my_bool, op::equals, true)
+};
+
+// the expression_tree takes ownership of the unique_ptr
+expression_tree<my_type> expr_tree_smart(std::move(smart_expr));
+
+...
+
+// The heap-allocated expression node pointer returned by make_expr must be explicitly deleted
+auto* expr_raw = make_expr(&my_type::my_bool, op::equals, true);
+delete expr_raw;
+```
+
+Please see the section below for more information about expression tree nodes.
 
 ## Types of Expression Tree Nodes
 
