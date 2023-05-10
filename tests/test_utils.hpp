@@ -16,3 +16,19 @@ struct test_fixture {
         return some_uint;
     }
 };
+
+struct packet_payload {
+    uint16_t error_code; 
+    std::string data;
+    bool checksum_ok;
+
+    uint64_t payload_size() const {
+        return data.size();
+    }
+};
+
+class data_packet {
+    public:
+        std::string sender_name;
+        packet_payload payload;
+};
