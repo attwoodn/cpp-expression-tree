@@ -15,4 +15,9 @@ if(BUILD_TESTING)
     target_compile_options( expression_tree_op_node_test PRIVATE -fsanitize=address )
     add_test( expression_tree_op_node_test ${EXECUTABLE_OUTPUT_PATH}/expression_tree_op_node_test )
 
+    add_executable( expression_tree_test expression_tree.cpp )
+    target_link_libraries( expression_tree_test "-fsanitize=address" )
+    target_compile_options( expression_tree_test PRIVATE -fsanitize=address )
+    add_test( expression_tree_test ${EXECUTABLE_OUTPUT_PATH}/expression_tree_test )
+
 endif()

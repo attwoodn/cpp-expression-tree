@@ -17,13 +17,18 @@ struct test_fixture {
     }
 };
 
-/**
- * Helper function for creating inner expression tree nodes. I'm undecided if this should be included in the public API.
-*/
-template<typename Obj, typename LeftChild, typename RightChild>
-std::unique_ptr<et::node::expression_tree_node<Obj>> make_op_node(LeftChild* left, et::boolean_op op, RightChild* right) {
-    auto node = new et::node::expression_tree_op_node<Obj, LeftChild, RightChild>(op);
-    node->set_left(left);
-    node->set_right(right);
-    return std::unique_ptr<et::node::expression_tree_node<Obj>>(node);
-}
+struct packet_payload {
+    uint16_t error_code; 
+    std::string data;
+    bool checksum_ok;
+
+    uint64_t payload_size() const {
+        return data.size();
+    }
+};
+
+class data_packet {
+    public:
+        std::string sender_name;
+        packet_payload payload;
+};
