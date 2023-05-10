@@ -1,5 +1,8 @@
 # Cpp Expression Tree
 
+[![Standard](https://img.shields.io/badge/C%2B%2B-14-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B14)
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://github.com/attwoodn/cpp-expression-tree/blob/main/LICENSE)
+
 Cpp Expression Tree is a header-only, C++14 library for creating logical expression trees and using them to evaluate instances of user-defined data types. 
 
 Inspired by m-peko/booleval.
