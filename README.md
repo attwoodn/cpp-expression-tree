@@ -40,7 +40,8 @@ struct my_type {
 
 ...
 
-// the Cpp Expression Tree library can be used to create an expression tree to evaluate instances of my_type
+// the Cpp Expression Tree library can be used to create an expression tree to 
+// evaluate instances of my_type
 
 // create an expression tree: my_bool == true OR (get_my_int() > 0 AND my_int < 10)
 expression_tree<my_type> expr {
@@ -51,46 +52,41 @@ expression_tree<my_type> expr {
     )
 };
 
+
 // create an instance of my_type that satisfies the above expression
 my_type obj;
 obj.my_bool = true;
 obj.my_int = 4;
+assert(expr.evaluate(obj));   // returns true - obj matches the expression
 
-// evaluating obj against the expression_tree above returns true
-assert(expr.evaluate(obj));
 
 // update obj so that my_int is outside the range 1..9
 obj.my_bool = true;
 obj.my_int = 12;
+assert(expr.evaluate(obj));   // returns true - obj matches the expression
 
-// evaluating obj against the expression_tree above returns true
-assert(expr.evaluate(obj));
 
 // update obj so that my_bool is false and my_int is outside the range 1..9
 obj.my_bool = false;
 obj.my_int = 0;
-
-// evaluating obj against the expression_tree above returns false
-assert(!expr.evaluate(obj));
+assert(!expr.evaluate(obj));  // returns false - obj does not match the expression
 ```
 
-Below is a diagram showing the content of the `expression_tree<my_type>` that was created in the example code above:
+Below is a diagram showing the content of the `expression_tree<my_type>` created in the example code above:
 
 <p align="center">
     <img src="docs/a_quick_example_expression_tree.png"/>
 </p>
 
-As you can imagine, this example code can be expanded to fit a variety of use cases and struct/class type structures. More complex code examples are provided in the documentation below. Further, there are a number of unit tests located in the `tests` directory, which may be helpful for getting familiar with the library.
+As you can imagine, this example code can be expanded to fit a variety of use cases and user-defined types. More complex code examples are provided in the documentation below. Further, there are a number of unit tests located in the `tests` directory, which may be helpful for getting familiar with the library.
 
 ## Creating Expression Trees
 
-The `expression_tree` class is a templated, RAII container class that takes ownership of user-defined expressions. The `expression_tree` class can be moved and/or copied to different contexts while maintaining consistency and safety. The template parameter of `expression_tree` is the type of object that the `expression_tree` can evaluate. Assuming there is a user-defined class named `my_type`, the templated `expression_tree` type would look like this: `expression_tree<my_type>`. The template argument of `expression_tree` cannot be a primitive type, like `int`, `char`, or `double`.
+The `expression_tree` class is a templated, RAII container class that takes ownership of user-defined expressions. Instances of `expression_tree` can be moved and/or copied to different contexts while maintaining consistency and memory safety. The template parameter of `expression_tree` defines the type of object that the `expression_tree` will evaluate. Assuming there is a user-defined struct named `my_type`, the templated `expression_tree` type would look like this: `expression_tree<my_type>`. The template argument of `expression_tree` cannot be a primitive type, like `int`, `char`, or `double`.
 
 An `expression_tree` cannot be default constructed - it must be initialized with an expression. Users can easily and intuitively define expressions using one of the `make_expr` helper functions found in the namespace `attwoodn::expression_tree`. `make_expr` generates heap-allocated pointers to expression tree nodes and returns them. As such, the returned expression tree node pointers should be managed carefully. If the returned pointers are not wrapped in an `expression_tree` or a smart pointer, they will need to be explicitly `delete`d by the calling code. 
 
-// TODO document the thre make_expr functions
-
-Here are some examples of how you might handle the return value from one of the `make_expr` helper functions:
+Here are some examples of how a user may safely handle the return value from one of the `make_expr` helper functions:
 ```cpp
 #include <attwoodn/expression_tree.hpp>
 
@@ -136,6 +132,8 @@ auto* expr_raw = make_expr(&my_type::my_bool, op::equals, true);
 delete expr_raw;
 ```
 
+// TODO document the three make_expr functions
+
 Please see the section below for more information about expression tree nodes.
 
 ## Types of Expression Tree Nodes
@@ -152,17 +150,32 @@ Expression tree op nodes contain a boolean operation (AND/OR) and have reference
 
 ## Logical Operators
 
-There are several logical operator functions defined in the namespace `attwoodn::expression_tree::op`, which can be used to create individual expressions within the tree. The included operators are:
+There are several logical operator functions defined in the namespace `attwoodn::expression_tree::op`, which can be used to create expression tree leaf nodes. The included operators are:
  * equals
  * not_equals
  * less_than
  * greater_than
 
+Each of the above logical operator functions are templated, and are overloaded to permit passing arguments of either a `const T&` type, or a `T*` type. This means that value types, references, and pointers are all permissible for comparison. 
+
+Note that there is a known limitation to comparing `T*` types, such as `char*`, using the above operator functions. With `T*` types, no iteration is performed, so comparison is performed only on the data located at the beginning of the pointer address. For example:
+
+```cpp
+assert(op::equals("test", "testing 123"));                            // returns true
+
+assert(!op::equals(std::string("test"), std::string("testing 123"))); // returns false
+```
+
+Should users wish to compare an iterable collection of elements using the provided operator functions, they should compare container types, such as `std::vector<T>`, instead of pointer types like `T*`.
+
 Users of the library can also easily define their own logical operators and use them when creating expressions. Here is an example of how a user might create their own operator functions and use them in an expression:
 
 ```cpp
+#include <attwoodn/expression_tree.hpp>
+
 using namespace attwoodn::expression_tree;
 
+// imagine there are two user-defined types, like so:
 struct packet_payload {
     uint16_t error_code; 
     std::string data;
@@ -173,15 +186,19 @@ struct packet_payload {
     }
 };
 
+// data packet contains an instance of packet_payload, which needs to be evaluated
 class data_packet {
     public:
         std::string sender_name;
         packet_payload payload;
 };
 
+
 ...
 
-// user creates their own logical operator for evaluating incoming packet_payload objects
+
+// user creates their own logical operator for evaluating incoming packet_payload objects.
+// only the first function argument is used. The other is an "empty", ignored instance
 auto is_small_packet_payload = [](const packet_payload& incoming, const packet_payload&) -> bool {
     if(incoming.error_code == 0 && incoming.checksum_ok && incoming.payload_size() <= 10) {
         return true;
@@ -189,8 +206,8 @@ auto is_small_packet_payload = [](const packet_payload& incoming, const packet_p
     return false;
 };
 
-// Create an expression that only accepts small, non-errored data packets from Jim. 
-// evaluate packet contents using the user-defined lambda operator defined above
+// User creates an expression that only accepts small, non-errored data packets from Jim. 
+// The expression evaluates the packet_payload using the user-defined lambda operator created above
 expression_tree<data_packet> expr {
     make_expr(&data_packet::sender_name, op::equals, std::string("Jim"))
     ->AND(make_expr(&data_packet::payload, is_small_packet_payload, packet_payload()))
@@ -212,20 +229,20 @@ assert(!expr.evaluate(incoming_packet));     // fails evaluation. No messages fr
 // Jim sends a packet with a bad checksum
 incoming_packet.sender_name = "Jim";
 incoming_packet.payload.checksum_ok = false;
-assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet was from Jim, but the checksum was bad
+assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet was from Jim, but checksum was bad
 
 // Jim sends a packet whose payload is too big
 incoming_packet.payload.checksum_ok = true;
 incoming_packet.payload.data = "Boy do I have a long story for you - so I was talking to Pam ...";
-assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet's payload was too big. Give me the TLDR next time, Jim
+assert(!expr.evaluate(incoming_packet));     // fails evaluation. The payload was too big. Give me the TLDR, Jim
 
 // Jim sends a small, rude packet
 incoming_packet.payload.data = "Dwight sux";
-assert(expr.evaluate(incoming_packet));      // passes evaluation. The packet's payload was the right size this time
+assert(expr.evaluate(incoming_packet));      // passes evaluation. The payload was the right size this time
 
 // Jim sends a packet has an error code
 incoming_packet.payload.error_code = 404;
-assert(!expr.evaluate(incoming_packet));     // fails evaluation. The packet's payload had an error code
+assert(!expr.evaluate(incoming_packet));     // fails evaluation. The payload had an error code
 ```
 
 ## Boolean Operators

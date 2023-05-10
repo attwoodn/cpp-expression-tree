@@ -1,12 +1,14 @@
 #include <attwoodn/expression_tree.hpp>
 #include "test_utils.hpp"
 #include <functional>
+#include <vector>
 #include <cassert>
 
 using namespace attwoodn::expression_tree;
 
-void test_expression_tree_std_string_template();
 void test_quick_example_expression_tree();
+void test_expression_tree_std_string_template();
+void test_expression_tree_std_vector_template();
 void test_simple_expression_tree();
 void test_complex_expression_tree();
 void test_moved_expression_tree();
@@ -14,8 +16,9 @@ void test_copied_expression_tree();
 void test_user_defined_operator();
 
 int main(int argc, char** argv) {
-    test_expression_tree_std_string_template();
     test_quick_example_expression_tree();
+    test_expression_tree_std_string_template();
+    test_expression_tree_std_vector_template();
     test_simple_expression_tree();
     test_complex_expression_tree();
     test_moved_expression_tree();
@@ -58,6 +61,36 @@ void test_expression_tree_std_string_template() {
     assert(!expr.evaluate(" "));
     assert(!expr.evaluate("hello"));
     assert(!expr.evaluate("good bye"));
+}
+
+void test_expression_tree_std_vector_template() {
+    struct my_vec_wrapper {
+        std::vector<int> int_vec;
+    };
+
+    expression_tree<my_vec_wrapper> expr {
+        make_expr(&my_vec_wrapper::int_vec, op::equals, {1, 2, 3})
+    };
+
+    my_vec_wrapper obj;
+    
+    obj.int_vec = {1, 2, 3};
+    assert(expr.evaluate(obj));
+
+    obj.int_vec = {1, 2, 3, 4};
+    assert(!expr.evaluate(obj));
+
+    obj.int_vec = {3, 2, 1};
+    assert(!expr.evaluate(obj));
+
+    obj.int_vec = {};
+    assert(!expr.evaluate(obj));
+
+    obj.int_vec = {1, 2, 3, 1};
+    assert(!expr.evaluate(obj));
+
+    obj.int_vec = {1, 2, 3, 2, 1};
+    assert(!expr.evaluate(obj));
 }
 
 void test_simple_expression_tree() {
