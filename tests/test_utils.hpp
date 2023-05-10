@@ -21,7 +21,7 @@ struct test_fixture {
  * Helper function for creating inner expression tree nodes. I'm undecided if this should be included in the public API.
 */
 template<typename Obj, typename LeftChild, typename RightChild>
-std::unique_ptr<et::node::expression_tree_node<Obj>> make_op_node(LeftChild* left, et::boolean_op op, RightChild* right) {
+std::unique_ptr<et::node::expression_tree_node<Obj>> make_op_node(LeftChild* left, et::node::boolean_op op, RightChild* right) {
     auto node = new et::node::expression_tree_op_node<Obj, LeftChild, RightChild>(op);
     node->set_left(left);
     node->set_right(right);

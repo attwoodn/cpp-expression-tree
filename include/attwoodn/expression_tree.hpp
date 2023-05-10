@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <stdexcept>
 
 namespace attwoodn::expression_tree {
@@ -53,12 +54,12 @@ namespace attwoodn::expression_tree {
         }
     }
 
-    enum class boolean_op {
-        AND,
-        OR
-    };
-
     namespace node {
+
+        enum class boolean_op {
+            AND,
+            OR
+        };
 
         template<typename Obj, typename LeftChild, typename RightChild>
         class expression_tree_op_node;
@@ -84,6 +85,16 @@ namespace attwoodn::expression_tree {
                  *              nodes under this node in the expression tree. 
                 */
                 virtual bool evaluate(const Obj& obj) = 0;
+
+                /**
+                 * @brief Performs a deep clone of pointers to this base class to avoid object slicing.
+                */
+                auto clone() {
+                    return std::unique_ptr<expression_tree_node<Obj>>(clone_impl());
+                }
+                
+            protected:
+                virtual expression_tree_node<Obj>* clone_impl() const = 0;
         };
 
         /**
@@ -209,6 +220,11 @@ namespace attwoodn::expression_tree {
                 boolean_op bool_op_;
                 LeftChild* left_ { nullptr };
                 RightChild* right_ { nullptr };
+
+            protected:
+                virtual expression_tree_op_node<Obj, LeftChild, RightChild>* clone_impl() const override { 
+                    return new expression_tree_op_node<Obj, LeftChild, RightChild>(*this); 
+                }
         };
         
         /**
@@ -332,6 +348,11 @@ namespace attwoodn::expression_tree {
                 const CompValue Obj::* member_var_ = nullptr;
                 Op logical_op_;
                 CompValue comp_value_;
+
+            protected:
+                virtual expression_tree_leaf_node<Obj, Op, CompValue>* clone_impl() const override { 
+                    return new expression_tree_leaf_node<Obj, Op, CompValue>(*this); 
+                }
         };
 
     }
@@ -362,4 +383,67 @@ namespace attwoodn::expression_tree {
     node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue (Obj::* member_func)() const, Op op, CompValue comp_value ) {
         return new node::expression_tree_leaf_node<Obj, Op, CompValue>( member_func, op, comp_value );
     }
+
+    template<typename Obj>
+    class expression_tree { 
+        public:
+            expression_tree() = delete;
+
+            expression_tree(node::expression_tree_node<Obj>* expr) {
+                if(!expr) {
+                    throw std::runtime_error("Attempted to construct an expression_tree with a null root expression node");
+                }
+
+                expr_ = expr->clone().release();
+                delete expr;
+            }
+
+            expression_tree(const expression_tree& other)
+                    : expr_(other.expr_->clone().release()) {}
+
+            expression_tree(expression_tree&& other)
+                    : expr_(other.expr_) {
+                other.expr_ = nullptr;
+            }
+
+            expression_tree& operator=(const expression_tree& other) {
+                delete expr_;
+                expr_ = other.expr_->clone().release();
+                return *this;
+            }
+
+            expression_tree& operator=(const expression_tree&& other) {
+                if(this != &other) {
+                    delete expr_;
+                    expr_ = other.expr_;
+                    other.expr_ = nullptr;
+                }
+                return *this;
+            }
+
+            ~expression_tree() {
+                delete expr_;
+            }
+
+            /**
+             * @brief Evaluates the given object to determine if it satisfies the expressions defined in this expression tree.
+             * 
+             * @returns True if the given object satisfied the expression tree conditions;
+             *          False if the given object did not satisfy the expression tree conditions. 
+            */
+            bool evaluate(const Obj& obj) {
+                if(!expr_) {
+                    throw std::runtime_error("expression_tree has a null root expression node");
+                }
+
+                try {
+                    return expr_->evaluate(obj);
+                } catch(std::exception& e) {
+                    return false;
+                }
+            }
+
+        private:
+            node::expression_tree_node<Obj>* expr_ = nullptr;
+    };
 }
