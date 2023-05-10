@@ -18,10 +18,10 @@ int main(int argc, char** argv) {
 }
 
 void test_AND_op_node_evaluation() {
-    auto child_expr1 = make_expr(&test_fixture::some_string, op::equals, std::string("hello, world!"));
-    auto child_expr2 = make_expr(&test_fixture::some_uint, op::less_than, (uint16_t) 500);
-
-    auto expr = make_op_node<test_fixture>(child_expr1, node::boolean_op::AND, child_expr2);
+    auto expr = std::unique_ptr<node::expression_tree_node<test_fixture>>(
+        make_expr(&test_fixture::some_string, op::equals, std::string("hello, world!"))
+        ->AND(make_expr(&test_fixture::some_uint, op::less_than, (uint16_t) 500))
+    );
     
     test_fixture fixture;
     fixture.some_string = "hello, world!";
@@ -69,10 +69,10 @@ void test_AND_op_node_evaluation() {
 }
 
 void test_OR_op_node_evaluation() {
-    auto child_expr1 = make_expr(&test_fixture::some_string, op::equals, std::string("hello, world!"));
-    auto child_expr2 = make_expr(&test_fixture::some_uint, op::less_than, (uint16_t) 500);
-
-    auto expr = make_op_node<test_fixture>(child_expr1, node::boolean_op::OR, child_expr2);
+    auto expr = std::unique_ptr<node::expression_tree_node<test_fixture>>(
+        make_expr(&test_fixture::some_string, op::equals, std::string("hello, world!"))
+        ->OR(make_expr(&test_fixture::some_uint, op::less_than, (uint16_t) 500))
+    );
     
     test_fixture fixture;
     fixture.some_string = "hello, world!";
