@@ -70,9 +70,9 @@ namespace attwoodn::expression_tree {
          * @brief The base class representing all expression tree nodes.
         */
         template<typename Obj>
-        class expression_tree_node_base {
+        class expression_tree_node {
             public:
-                virtual ~expression_tree_node_base() {};
+                virtual ~expression_tree_node() {};
 
                 /**
                  * @brief Evaluates the given object to determine if it satisfies the expressions defined in this node and all child nodes.
@@ -91,7 +91,7 @@ namespace attwoodn::expression_tree {
          *        child node, as well as the boolean operation to be performed (e.g. left child AND right child, or left child OR right child).
         */
         template<typename Obj, typename LeftChild, typename RightChild>
-        class expression_tree_op_node : public expression_tree_node_base<Obj> {
+        class expression_tree_op_node : public expression_tree_node<Obj> {
             public:
                 using this_type = expression_tree_op_node<Obj, LeftChild, RightChild>;
 
@@ -152,12 +152,12 @@ namespace attwoodn::expression_tree {
         };
         
         /**
-         * @brief Represents leaf nodes of the tree. These nodes contain a reference to a member variable or member function of the
-         *        given Obj type, the requested logical operation to be performed (e.g. equals, greater_than, etc.), and the
+         * @brief Represents leaf nodes of the tree. These nodes contain: a reference to a member variable or member function of the
+         *        given Obj type; the requested logical operation to be performed (e.g. equals, greater_than, etc.); and the
          *        value to compare to the given member variable or member function of an Obj instance.
         */
         template<typename Obj, typename Op, typename CompValue>
-        class expression_tree_leaf_node : public expression_tree_node_base<Obj> {
+        class expression_tree_leaf_node : public expression_tree_node<Obj> {
             public:
                 using this_type = expression_tree_leaf_node<Obj, Op, CompValue>;
 
@@ -207,6 +207,66 @@ namespace attwoodn::expression_tree {
                     return logical_op_(actual_value, comp_value_);
                 }
 
+                /**
+                 * Performs an AND operation with another expression_tree_leaf_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was AND'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherOp, typename OtherCompValue, typename OtherLeafNode,
+                    std::enable_if<std::is_same<OtherLeafNode, expression_tree_leaf_node<Obj, OtherOp, OtherCompValue>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherLeafNode>* AND (OtherLeafNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherLeafNode>(boolean_op::AND);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
+                /**
+                 * Performs an OR operation with another expression_tree_leaf_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was OR'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherOp, typename OtherCompValue, typename OtherLeafNode,
+                    std::enable_if<std::is_same<OtherLeafNode, expression_tree_leaf_node<Obj, OtherOp, OtherCompValue>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherLeafNode>* OR (OtherLeafNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherLeafNode>(boolean_op::OR);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
+                /**
+                 * Performs an AND operation with an expression_tree_op_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was AND'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherLeftChild, typename OtherRightChild, typename OtherOpNode, 
+                    std::enable_if<std::is_same<OtherOpNode, expression_tree_op_node<Obj, OtherLeftChild, OtherRightChild>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherOpNode>* AND (OtherOpNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherOpNode>(boolean_op::AND);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
+                /**
+                 * Performs an OR operation with an expression_tree_op_node to create a heap-allocated pointer
+                 * to a new expression_tree_op_node. The returned expression_tree_op_node becomes the parent of both this node
+                 * and the other node that was OR'ed with this node. This node becomes the left child. The other node becomes
+                 * the right child.
+                */
+                template<typename OtherLeftChild, typename OtherRightChild, typename OtherOpNode,
+                    std::enable_if<std::is_same<OtherOpNode, expression_tree_op_node<Obj, OtherLeftChild, OtherRightChild>>::value>* = nullptr>
+                expression_tree_op_node<Obj, this_type, OtherOpNode>* OR (OtherOpNode* other) {
+                    auto* op_node = new expression_tree_op_node<Obj, this_type, OtherOpNode>(boolean_op::OR);
+                    op_node->set_left(this);
+                    op_node->set_right(other);
+                    return op_node;
+                }
+
             private:
                 CompValue (Obj::* member_func_)() const = nullptr;
                 const CompValue Obj::* member_var_ = nullptr;
@@ -236,7 +296,7 @@ namespace attwoodn::expression_tree {
     }
 
     /**
-     * Makes an expression tree leaf node for comparing a class/struct's const member function return values
+     * Makes an expression tree leaf node for comparing the return value from a class/struct's const member function
     */
     template<typename Obj, typename CompValue, typename Op = typename type_id<bool (*)(CompValue, CompValue)>::type>
     node::expression_tree_leaf_node<Obj, Op, CompValue>* make_expr( CompValue (Obj::* member_func)() const, Op op, CompValue comp_value ) {
