@@ -167,7 +167,7 @@ There are several logical operator functions defined in the namespace `attwoodn:
  * less_than
  * greater_than
 
-Each of the above logical operator functions are templated, and are overloaded to permit passing arguments of either a `const T&` type, or a `T*` type. This means that value types, references, and pointers are all permissible for comparison. 
+Each of the above logical operator functions are templated, and are overloaded to permit passing arguments of either a `const T` type, or a `T*` type. In this manner, value types and pointers are permissible for comparison. 
 
 Note that there is a known limitation to comparing `T*` types, such as `char*`, using the above operator functions. With `T*` types, no iteration is performed, so comparison is performed only on the data located at the beginning of the pointer address. For example:
 
