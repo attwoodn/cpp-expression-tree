@@ -14,5 +14,9 @@ if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 endif()
 
+# Generate compile_commands.json for LLVM tooling
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Generates compile_commands.json when enabled")
+mark_as_advanced(CLEAR CMAKE_EXPORT_COMPILE_COMMANDS)
+
 include_directories( include )
 add_subdirectory( tests )
