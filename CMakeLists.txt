@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(expression_tree 
-    DESCRIPTION "C++11 expression tree implementation, used for evaluating instances of user-defined types"
-    VERSION 0.0.1
+    DESCRIPTION "C++14 expression tree implementation, used for evaluating instances of user-defined types"
+    VERSION 1.0.0
     LANGUAGES CXX)
 
 include(CTest)
