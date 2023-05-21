@@ -15,7 +15,7 @@ void test_moved_expression_tree();
 void test_copied_expression_tree();
 void test_user_defined_operator();
 
-int main(int argc, char** argv) {
+int main() {
     test_quick_example_expression_tree();
     test_expression_tree_std_string_template();
     test_expression_tree_std_vector_template();

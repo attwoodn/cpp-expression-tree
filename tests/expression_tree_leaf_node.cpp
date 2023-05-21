@@ -10,7 +10,7 @@ void test_char_ptr_evaluation();
 void test_uint_evaluation();
 void test_const_func_evaluation();
 
-int main(int argc, char** argv) {
+int main() {
     test_string_evaluation();
     test_char_ptr_evaluation();
     test_uint_evaluation();
