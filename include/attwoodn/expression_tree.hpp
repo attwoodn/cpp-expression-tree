@@ -3,7 +3,8 @@
 #include <memory>
 #include <stdexcept>
 
-namespace attwoodn::expression_tree {
+namespace attwoodn {
+namespace expression_tree {
 
     namespace op {
         
@@ -476,4 +477,5 @@ namespace attwoodn::expression_tree {
         private:
             node::expression_tree_node<Obj>* expr_ = nullptr;
     };
+}
 }

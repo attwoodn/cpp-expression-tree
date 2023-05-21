@@ -10,7 +10,7 @@ void test_not_equals();
 void test_less_than();
 void test_greater_than();
 
-int main(int argc, char** argv) {
+int main() {
     test_equals();
     test_not_equals();
     test_less_than();

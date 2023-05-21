@@ -8,7 +8,7 @@ using namespace attwoodn::expression_tree;
 void test_AND_op_node_evaluation();
 void test_OR_op_node_evaluation();
 
-int main(int argc, char** argv) {
+int main() {
     test_AND_op_node_evaluation();
     test_OR_op_node_evaluation();
 

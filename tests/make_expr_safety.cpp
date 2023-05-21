@@ -6,7 +6,7 @@ using namespace attwoodn::expression_tree;
 
 void make_expr_memory_safety_test();
 
-int main(int argc, char** argv) {
+int main() {
     make_expr_memory_safety_test();
 
     return EXIT_SUCCESS;
