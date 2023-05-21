@@ -1,7 +1,7 @@
 #include <attwoodn/expression_tree.hpp>
 #include "test_utils.hpp"
+#include "release_asserts.hpp"
 #include <limits>
-#include <cassert>
 
 using namespace attwoodn::expression_tree;
 
