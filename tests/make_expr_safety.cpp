@@ -1,6 +1,5 @@
 #include <attwoodn/expression_tree.hpp>
 #include "test_utils.hpp"
-#include "release_asserts.hpp"
 
 using namespace attwoodn::expression_tree;
 

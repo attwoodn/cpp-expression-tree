@@ -74,7 +74,7 @@ namespace expression_tree {
         template<typename Obj>
         class expression_tree_node {
             public:
-                virtual ~expression_tree_node() {};
+                virtual ~expression_tree_node() = default;
 
                 /**
                  * @brief Evaluates the given object to determine if it satisfies the expressions defined in this node and all child nodes.
@@ -228,7 +228,7 @@ namespace expression_tree {
                 RightChild* right_ { nullptr };
 
             protected:
-                virtual expression_tree_op_node<Obj, LeftChild, RightChild>* clone_impl() const override { 
+                expression_tree_op_node<Obj, LeftChild, RightChild>* clone_impl() const override { 
                     return new expression_tree_op_node<Obj, LeftChild, RightChild>(*this); 
                 }
         };
@@ -246,9 +246,9 @@ namespace expression_tree {
                 expression_tree_leaf_node() = delete;
                 
                 expression_tree_leaf_node(const expression_tree_leaf_node& other) = default;
-                expression_tree_leaf_node(expression_tree_leaf_node&& other) = default;
+                expression_tree_leaf_node(expression_tree_leaf_node&& other) noexcept = default;
                 expression_tree_leaf_node& operator=(const expression_tree_leaf_node& other) = default;
-                expression_tree_leaf_node& operator=(expression_tree_leaf_node&& other) = default;
+                expression_tree_leaf_node& operator=(expression_tree_leaf_node&& other) noexcept = default;
 
                 /**
                  * @brief Constructor that accepts a reference to a member variable of Obj
@@ -266,7 +266,7 @@ namespace expression_tree {
                       logical_op_(op),
                       comp_value_(comp_value) {}
 
-                ~expression_tree_leaf_node() override {};
+                ~expression_tree_leaf_node() override = default;
 
                 bool evaluate(const Obj& obj) const override {
                     if (member_func_ && member_var_) {
@@ -363,14 +363,14 @@ namespace expression_tree {
                 CompValue comp_value_;
 
             protected:
-                virtual expression_tree_leaf_node<Obj, Op, CompValue>* clone_impl() const override { 
+                expression_tree_leaf_node<Obj, Op, CompValue>* clone_impl() const override { 
                     return new expression_tree_leaf_node<Obj, Op, CompValue>(*this); 
                 }
         };
 
     }
 
-    template<class T> struct type_id{typedef T type;}; 
+    template<class T> struct type_id{using type = T;}; 
 
     /**
      * Makes an expression tree leaf node for comparing pointer-type member variables of a class/struct
@@ -421,29 +421,24 @@ namespace expression_tree {
                 expr_ = other.expr_->clone().release();
             }
 
-            expression_tree(expression_tree&& other) {
-                if(!other.expr_) {
-                    throw std::runtime_error("Attempted to move construct an expression_tree " + 
-                        std::string("from an expression_tree with a null expression"));
-                }
+            expression_tree(expression_tree&& other) noexcept {
                 expr_ = other.expr_;
                 other.expr_ = nullptr;
             }
 
             expression_tree& operator=(const expression_tree& other) {
-                if(!other.expr_) {
-                    throw std::runtime_error("Attempted copy assignment from an expression_tree with a null expression");
+                if(this != &other) {
+                    delete expr_;
+                    if(other.expr_) {
+                        expr_ = other.expr_->clone().release();
+                    } else {
+                        expr_ = nullptr;
+                    }
                 }
-                delete expr_;
-                expr_ = other.expr_->clone().release();
                 return *this;
             }
 
-            expression_tree& operator=(expression_tree&& other) {
-                if(!other.expr_) {
-                    throw std::runtime_error("Attempted move assignment from an expression_tree with a null expression");
-                }
-                
+            expression_tree& operator=(expression_tree&& other) noexcept {
                 if(this != &other) {
                     delete expr_;
                     expr_ = other.expr_;
